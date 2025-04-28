@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -159,7 +158,7 @@ class ReportServiceTest {
         when(billRepository.findAll()).thenReturn(testBills);
 
         // Act
-        ApiResponse response = reportService.generateCustomerReport(null, null);
+        ApiResponse<S> response = reportService.generateCustomerReport(null, null);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatusCode());
@@ -175,7 +174,7 @@ class ReportServiceTest {
         when(billRepository.findAll()).thenReturn(testBills);
 
         // Act
-        ApiResponse response = reportService.generateProductReport(null, null);
+        ApiResponse<S> response = reportService.generateProductReport(null, null);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatusCode());
@@ -191,7 +190,7 @@ class ReportServiceTest {
         when(billRepository.findAll()).thenReturn(testBills);
 
         // Act
-        ApiResponse response = reportService.generateBusinessReport(null, null);
+        ApiResponse<S> response = reportService.generateBusinessReport(null, null);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatusCode());
@@ -212,7 +211,7 @@ class ReportServiceTest {
         when(billRepository.findByBillDateBetween(any(), any())).thenReturn(testBills);
 
         // Act
-        ApiResponse response = reportService.generateCustomerReport(startDate, endDate);
+        ApiResponse<S> response = reportService.generateCustomerReport(startDate, endDate);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatusCode());
@@ -226,7 +225,7 @@ class ReportServiceTest {
         when(billRepository.findAll()).thenReturn(new ArrayList<>());
 
         // Act
-        ApiResponse response = reportService.generateCustomerReport(null, null);
+        ApiResponse<S> response = reportService.generateCustomerReport(null, null);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCode());

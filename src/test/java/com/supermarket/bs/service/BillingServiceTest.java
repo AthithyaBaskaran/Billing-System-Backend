@@ -103,7 +103,7 @@ class BillingServiceTest {
         when(billRepository.findByCustomer(testCustomer)).thenReturn(testBills);
 
         // Act
-        ApiResponse response = billingService.generateCustomerInvoice(1L);
+        ApiResponse<S> response = billingService.generateCustomerInvoice(1L);
 
         // Assert
         assertEquals(HttpStatus.OK.value(), response.getStatusCode());
@@ -125,7 +125,7 @@ class BillingServiceTest {
         when(customerService.getCustomerById(999L)).thenReturn(Optional.empty());
 
         // Act
-        ApiResponse response = billingService.generateCustomerInvoice(999L);
+        ApiResponse<S> response = billingService.generateCustomerInvoice(999L);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCode());
@@ -140,7 +140,7 @@ class BillingServiceTest {
         when(billRepository.findByCustomer(testCustomer)).thenReturn(new ArrayList<>());
 
         // Act
-        ApiResponse response = billingService.generateCustomerInvoice(1L);
+        ApiResponse<S> response = billingService.generateCustomerInvoice(1L);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCode());
