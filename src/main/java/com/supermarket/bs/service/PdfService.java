@@ -76,7 +76,6 @@ public class PdfService {
         Paragraph title = new Paragraph("SUPERMARKET BILLING SYSTEM", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
-        
         Paragraph subtitle = new Paragraph("INVOICE", titleFont);
         subtitle.setAlignment(Element.ALIGN_CENTER);
         document.add(subtitle);
