@@ -122,4 +122,16 @@ public class BillingController {
         ApiResponse response = billingService.updateBillPaymentStatus(id, paymentStatus);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
+    
+    /**
+     * Generate a detailed invoice for a specific customer
+     * 
+     * @param customerId The ID of the customer
+     * @return ResponseEntity containing the invoice data
+     */
+    @GetMapping("/invoice/customer/{customerId}")
+    public ResponseEntity<ApiResponse> generateCustomerInvoice(@PathVariable Long customerId) {
+        ApiResponse response = billingService.generateCustomerInvoice(customerId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
 }

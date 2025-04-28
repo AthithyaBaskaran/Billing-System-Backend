@@ -1,6 +1,7 @@
 package com.supermarket.bs.service;
 
 import com.supermarket.bs.dto.ApiResponse;
+import com.supermarket.bs.dto.InvoiceDTO;
 import com.supermarket.bs.model.Bill;
 import com.supermarket.bs.model.BillItem;
 import com.supermarket.bs.model.Customer;
@@ -43,7 +44,7 @@ public class BillingService {
     }
     
     public ApiResponse getBillById(Long id) {
-        Optional<Bill> billOptional = billRepository.findById(id);
+        Optional<Bill> billOptional = billRepository.findByIdWithDetails(id);
         if (billOptional.isPresent()) {
             return new ApiResponse(
                     HttpStatus.OK.value(),
@@ -136,6 +137,9 @@ public class BillingService {
                 product.setStockQuantity(product.getStockQuantity() - item.getQuantity());
                 productRepository.save(product);
                 
+                // Set the full product object to the bill item
+                item.setProduct(product);
+                
                 // Set unit price from product
                 item.setUnitPrice(product.getPrice());
                 
@@ -159,10 +163,13 @@ public class BillingService {
             
             Bill savedBill = billRepository.save(bill);
             
+            // Fetch the saved bill with all details
+            Optional<Bill> billWithDetails = billRepository.findByIdWithDetails(savedBill.getId());
+            
             return new ApiResponse(
                     HttpStatus.CREATED.value(),
                     "Bill created successfully",
-                    savedBill
+                    billWithDetails.orElse(savedBill)
             );
         } catch (RuntimeException e) {
             return new ApiResponse(
@@ -197,6 +204,54 @@ public class BillingService {
             return new ApiResponse(
                     HttpStatus.NOT_FOUND.value(),
                     e.getMessage(),
+                    null
+            );
+        }
+    }
+    
+    /**
+     * Generate a detailed invoice for a specific customer
+     * 
+     * @param customerId The ID of the customer
+     * @return ApiResponse containing the invoice data
+     */
+    public ApiResponse generateCustomerInvoice(Long customerId) {
+        try {
+            // Get the customer
+            Optional<Customer> customerOptional = customerService.getCustomerById(customerId);
+            if (!customerOptional.isPresent()) {
+                return new ApiResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        "Customer not found with id: " + customerId,
+                        null
+                );
+            }
+            
+            Customer customer = customerOptional.get();
+            
+            // Get all bills for the customer with full details
+            List<Bill> customerBills = billRepository.findByCustomer(customer);
+            
+            if (customerBills.isEmpty()) {
+                return new ApiResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        "No bills found for customer with id: " + customerId,
+                        null
+                );
+            }
+            
+            // Create the invoice DTO
+            InvoiceDTO invoice = InvoiceDTO.fromCustomerAndBills(customer, customerBills);
+            
+            return new ApiResponse(
+                    HttpStatus.OK.value(),
+                    "Customer invoice generated successfully",
+                    invoice
+            );
+        } catch (Exception e) {
+            return new ApiResponse(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    "Error generating customer invoice: " + e.getMessage(),
                     null
             );
         }

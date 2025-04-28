@@ -40,7 +40,7 @@ public class Bill {
     private Customer customer;
     
     
-    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true, fetch = jakarta.persistence.FetchType.EAGER)
     private List<BillItem> items = new ArrayList<>();
     
     private BigDecimal subtotal = BigDecimal.ZERO;

@@ -32,7 +32,7 @@ public class BillItem {
     @JsonIgnore
     private Bill bill;
     
-    @ManyToOne
+    @ManyToOne(fetch = jakarta.persistence.FetchType.EAGER)
     @JoinColumn(name = "product_id")
     private Product product;
     
