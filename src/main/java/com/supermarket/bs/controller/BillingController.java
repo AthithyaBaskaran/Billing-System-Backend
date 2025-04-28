@@ -5,9 +5,12 @@ import com.supermarket.bs.model.BillItem;
 import com.supermarket.bs.model.Customer;
 import com.supermarket.bs.service.BillingService;
 import com.supermarket.bs.service.CustomerService;
+import com.supermarket.bs.service.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,11 +27,13 @@ public class BillingController {
     
     private final BillingService billingService;
     private final CustomerService customerService;
+    private final PdfService pdfService;
     
     @Autowired
-    public BillingController(BillingService billingService, CustomerService customerService) {
+    public BillingController(BillingService billingService, CustomerService customerService, PdfService pdfService) {
         this.billingService = billingService;
         this.customerService = customerService;
+        this.pdfService = pdfService;
     }
     
     @GetMapping
@@ -133,5 +138,41 @@ public class BillingController {
     public ResponseEntity<ApiResponse> generateCustomerInvoice(@PathVariable Long customerId) {
         ApiResponse response = billingService.generateCustomerInvoice(customerId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
+    }
+    
+    /**
+     * Download a bill as PDF
+     * 
+     * @param id The ID of the bill to download
+     * @return ResponseEntity containing the PDF file
+     */
+    @GetMapping("/{id}/download")
+    public ResponseEntity<?> downloadBillAsPdf(@PathVariable Long id) {
+        try {
+            // Get bill details first to check if it exists
+            ApiResponse billResponse = billingService.getBillById(id);
+            if (billResponse.getStatusCode() != HttpStatus.OK.value()) {
+                return ResponseEntity.status(billResponse.getStatusCode()).body(billResponse);
+            }
+            
+            // Generate PDF
+            byte[] pdfBytes = pdfService.generateBillPdf(id);
+            
+            // Set up headers for PDF download
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "bill-" + id + ".pdf");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            headers.setContentLength(pdfBytes.length);
+            
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            ApiResponse errorResponse = new ApiResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Error generating PDF: " + e.getMessage(),
+                null
+            );
+            return ResponseEntity.status(errorResponse.getStatusCode()).body(errorResponse);
+        }
     }
 }
