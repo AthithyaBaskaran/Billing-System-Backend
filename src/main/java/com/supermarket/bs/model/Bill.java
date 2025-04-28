@@ -39,6 +39,7 @@ public class Bill {
     @JoinColumn(name = "customer_id")
     private Customer customer;
     
+    
     @OneToMany(mappedBy = "bill", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BillItem> items = new ArrayList<>();
     

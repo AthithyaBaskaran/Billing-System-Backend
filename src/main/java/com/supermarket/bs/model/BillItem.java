@@ -1,5 +1,6 @@
 package com.supermarket.bs.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +29,7 @@ public class BillItem {
     
     @ManyToOne
     @JoinColumn(name = "bill_id")
+    @JsonIgnore
     private Bill bill;
     
     @ManyToOne

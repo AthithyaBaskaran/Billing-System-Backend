@@ -1,6 +1,6 @@
 package com.supermarket.bs.controller;
 
-import com.supermarket.bs.model.Bill;
+import com.supermarket.bs.dto.ApiResponse;
 import com.supermarket.bs.model.BillItem;
 import com.supermarket.bs.model.Customer;
 import com.supermarket.bs.service.BillingService;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -32,81 +32,94 @@ public class BillingController {
     }
     
     @GetMapping
-    public ResponseEntity<List<Bill>> getAllBills() {
-        return ResponseEntity.ok(billingService.getAllBills());
+    public ResponseEntity<ApiResponse> getAllBills() {
+        ApiResponse response = billingService.getAllBills();
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Bill> getBillById(@PathVariable Long id) {
-        return billingService.getBillById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> getBillById(@PathVariable Long id) {
+        ApiResponse response = billingService.getBillById(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/number/{billNumber}")
-    public ResponseEntity<Bill> getBillByNumber(@PathVariable String billNumber) {
-        return billingService.getBillByNumber(billNumber)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> getBillByNumber(@PathVariable String billNumber) {
+        ApiResponse response = billingService.getBillByNumber(billNumber);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<Bill>> getBillsByCustomer(@PathVariable Long customerId) {
-        return customerService.getCustomerById(customerId)
-                .map(customer -> ResponseEntity.ok(billingService.getBillsByCustomer(customer)))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse> getBillsByCustomer(@PathVariable Long customerId) {
+        Optional<Customer> customerOptional = customerService.getCustomerById(customerId);
+        
+        if (!customerOptional.isPresent()) {
+            ApiResponse errorResponse = new ApiResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Customer not found with id: " + customerId,
+                null
+            );
+            return ResponseEntity.status(errorResponse.getStatusCode()).body(errorResponse);
+        }
+        
+        Customer customer = customerOptional.get();
+        ApiResponse response = billingService.getBillsByCustomer(customer);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/date-range")
-    public ResponseEntity<List<Bill>> getBillsByDateRange(
+    public ResponseEntity<ApiResponse> getBillsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         
         LocalDateTime startDateTime = startDate.atStartOfDay();
         LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
         
-        return ResponseEntity.ok(billingService.getBillsByDateRange(startDateTime, endDateTime));
+        ApiResponse response = billingService.getBillsByDateRange(startDateTime, endDateTime);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/payment-method/{paymentMethod}")
-    public ResponseEntity<List<Bill>> getBillsByPaymentMethod(@PathVariable String paymentMethod) {
-        return ResponseEntity.ok(billingService.getBillsByPaymentMethod(paymentMethod));
+    public ResponseEntity<ApiResponse> getBillsByPaymentMethod(@PathVariable String paymentMethod) {
+        ApiResponse response = billingService.getBillsByPaymentMethod(paymentMethod);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @GetMapping("/payment-status/{paymentStatus}")
-    public ResponseEntity<List<Bill>> getBillsByPaymentStatus(@PathVariable String paymentStatus) {
-        return ResponseEntity.ok(billingService.getBillsByPaymentStatus(paymentStatus));
+    public ResponseEntity<ApiResponse> getBillsByPaymentStatus(@PathVariable String paymentStatus) {
+        ApiResponse response = billingService.getBillsByPaymentStatus(paymentStatus);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @PostMapping
-    public ResponseEntity<?> createBill(
+    public ResponseEntity<ApiResponse> createBill(
             @RequestParam(required = false) Long customerId,
             @Valid @RequestBody List<BillItem> items,
             @RequestParam String paymentMethod) {
         
-        try {
-            Customer customer = null;
-            if (customerId != null) {
-                customer = customerService.getCustomerById(customerId)
-                        .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
+        Customer customer = null;
+        if (customerId != null) {
+            Optional<Customer> customerOptional = customerService.getCustomerById(customerId);
+            if (!customerOptional.isPresent()) {
+                ApiResponse errorResponse = new ApiResponse(
+                    HttpStatus.NOT_FOUND.value(),
+                    "Customer not found with id: " + customerId,
+                    null
+                );
+                return ResponseEntity.status(errorResponse.getStatusCode()).body(errorResponse);
             }
-            
-            Bill createdBill = billingService.createBill(customer, items, paymentMethod);
-            return new ResponseEntity<>(createdBill, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            customer = customerOptional.get();
         }
+        
+        ApiResponse response = billingService.createBill(customer, items, paymentMethod);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
     @PatchMapping("/{id}/payment-status")
-    public ResponseEntity<Bill> updateBillPaymentStatus(
+    public ResponseEntity<ApiResponse> updateBillPaymentStatus(
             @PathVariable Long id,
             @RequestParam String paymentStatus) {
-        try {
-            Bill updatedBill = billingService.updateBillPaymentStatus(id, paymentStatus);
-            return ResponseEntity.ok(updatedBill);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        ApiResponse response = billingService.updateBillPaymentStatus(id, paymentStatus);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
