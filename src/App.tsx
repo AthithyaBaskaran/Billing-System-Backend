@@ -1,53 +1,27 @@
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import CustomersPage from './pages/CustomersPage';
+import CustomerDetailPage from './pages/CustomerDetailPage';
+import ProductsPage from './pages/ProductsPage';
+import BillingPage from './pages/BillingPage';
+import BillFilterPage from './pages/BillFilterPage';
+import ReportsPage from './pages/ReportsPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import LoginSuccessPage from './pages/LoginSuccessPage';
 import SignupSuccessPage from './pages/SignupSuccessPage';
 import CustomerSuccessPage from './pages/CustomerSuccessPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
-
-// Create a theme instance
-const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    success: {
-      main: '#4caf50',
-      light: '#81c784',
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-        },
-      },
-    },
-  },
-});
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <CssBaseline />
       <AuthProvider>
         <BrowserRouter>
@@ -62,7 +36,12 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/customers" element={<CustomersPage />} />
+              <Route path="/customers/:id" element={<CustomerDetailPage />} />
               <Route path="/customer-success" element={<CustomerSuccessPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/billing" element={<BillingPage />} />
+              <Route path="/bill-filters" element={<BillFilterPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
               {/* Add more protected routes here */}
             </Route>
             

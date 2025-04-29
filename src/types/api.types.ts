@@ -1,6 +1,7 @@
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
   statusCode: number;
-  message: string;
+  statusMessage?: string;
+  message?: string;
   data: T;
 }
 
@@ -39,9 +40,30 @@ export interface SignupRequest {
   address: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface PasswordResetRequest {
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface AuthState {
   isAuthenticated: boolean;
   user: LoginResponse | null;
   loading: boolean;
   error: string | null;
+}
+
+export interface Product {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  category?: string;
+  sku?: string;
+  stockQuantity?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

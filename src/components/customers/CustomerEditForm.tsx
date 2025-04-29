@@ -189,7 +189,6 @@ const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               name="firstName"
               control={control}
               label="First Name"
-              required
               error={!!errors.firstName}
               helperText={errors.firstName?.message}
             />
@@ -199,7 +198,6 @@ const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               name="lastName"
               control={control}
               label="Last Name"
-              required
               error={!!errors.lastName}
               helperText={errors.lastName?.message}
             />
@@ -210,7 +208,6 @@ const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               control={control}
               label="Email"
               type="email"
-              required
               error={!!errors.email}
               helperText={errors.email?.message}
             />
@@ -220,7 +217,6 @@ const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               name="phone"
               control={control}
               label="Phone"
-              required
               placeholder="e.g., 1234567890"
               error={!!errors.phone}
               helperText={errors.phone?.message}
@@ -231,7 +227,6 @@ const CustomerEditForm: React.FC<CustomerEditFormProps> = ({
               name="address"
               control={control}
               label="Address"
-              required
               options={addressOptions}
               getOptionLabel={(option) => 
                 typeof option === 'string' ? option : option.fullAddress

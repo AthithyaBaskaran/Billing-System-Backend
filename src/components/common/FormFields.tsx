@@ -26,6 +26,8 @@ interface TextInputProps<T extends FieldValues> extends BaseFormFieldProps<T> {
   placeholder?: string;
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
   InputProps?: TextFieldProps['InputProps'];
+  startAdornment?: React.ReactNode;
+  endAdornment?: React.ReactNode;
 }
 
 // Props for autocomplete fields
@@ -33,7 +35,7 @@ interface AutocompleteFieldProps<T extends FieldValues, Option> extends BaseForm
   options: Option[];
   getOptionLabel: (option: Option) => string;
   isOptionEqualToValue?: (option: Option, value: Option) => boolean;
-  autocompleteProps?: Partial<AutocompleteProps<Option, false, false, false>>;
+  autocompleteProps?: Partial<AutocompleteProps<Option, boolean, boolean, boolean>>;
   placeholder?: string;
 }
 
@@ -51,7 +53,9 @@ export const TextInput = <T extends FieldValues>({
   rows,
   placeholder,
   inputProps,
-  InputProps
+  InputProps,
+  startAdornment,
+  endAdornment
 }: TextInputProps<T>) => {
   return (
     <Controller
@@ -76,6 +80,8 @@ export const TextInput = <T extends FieldValues>({
           inputProps={inputProps}
           InputProps={{
             ...InputProps,
+            startAdornment: startAdornment || InputProps?.startAdornment,
+            endAdornment: endAdornment || InputProps?.endAdornment,
             sx: { borderRadius: 1, ...(InputProps?.sx || {}) }
           }}
         />
@@ -106,7 +112,14 @@ export const AutocompleteField = <T extends FieldValues, Option,>({
       render={({ field: { onChange, onBlur, value, ref } }) => (
         <Autocomplete
           options={options}
-          getOptionLabel={getOptionLabel}
+          getOptionLabel={(option: string | Option) => {
+            // Handle string options or null/undefined
+            if (typeof option === 'string' || option === null || option === undefined) {
+              return typeof option === 'string' ? option : '';
+            }
+            // Use the provided getOptionLabel for Option type
+            return getOptionLabel(option as Option);
+          }}
           isOptionEqualToValue={isOptionEqualToValue}
           value={value}
           onChange={(_, newValue) => {
