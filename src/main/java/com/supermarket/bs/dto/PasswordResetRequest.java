@@ -1,14 +1,8 @@
 package com.supermarket.bs.dto;
-
-
-
 public class PasswordResetRequest {
 
     private String newPassword;
     private String confirmPassword;
-
-
-
     public String getNewPassword() {
         return newPassword;
     }

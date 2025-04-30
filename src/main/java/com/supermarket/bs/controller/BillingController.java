@@ -6,6 +6,7 @@ import com.supermarket.bs.model.Customer;
 import com.supermarket.bs.service.BillingService;
 import com.supermarket.bs.service.CustomerService;
 import com.supermarket.bs.service.PdfService;
+import com.supermarket.bs.service.WhatsAppService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -28,12 +29,15 @@ public class BillingController {
     private final BillingService billingService;
     private final CustomerService customerService;
     private final PdfService pdfService;
+    private final WhatsAppService whatsAppService;
     
     @Autowired
-    public BillingController(BillingService billingService, CustomerService customerService, PdfService pdfService) {
+    public BillingController(BillingService billingService, CustomerService customerService, 
+                            PdfService pdfService, WhatsAppService whatsAppService) {
         this.billingService = billingService;
         this.customerService = customerService;
         this.pdfService = pdfService;
+        this.whatsAppService = whatsAppService;
     }
     
     @GetMapping
@@ -100,7 +104,8 @@ public class BillingController {
     public ResponseEntity<ApiResponse> createBill(
             @RequestParam(required = false) Long customerId,
             @Valid @RequestBody List<BillItem> items,
-            @RequestParam String paymentMethod) {
+            @RequestParam String paymentMethod,
+            @RequestParam(required = false, defaultValue = "false") boolean sendWhatsApp) {
         
         Customer customer = null;
         if (customerId != null) {
@@ -117,6 +122,17 @@ public class BillingController {
         }
         
         ApiResponse response = billingService.createBill(customer, items, paymentMethod);
+        
+        // If bill creation was successful and WhatsApp notification is requested
+        if (response.getStatusCode() == HttpStatus.CREATED.value() && sendWhatsApp && customer != null) {
+            // Extract the bill ID from the response data
+            if (response.getData() != null && response.getData() instanceof com.supermarket.bs.model.Bill) {
+                com.supermarket.bs.model.Bill bill = (com.supermarket.bs.model.Bill) response.getData();
+                // Send WhatsApp notification
+                whatsAppService.sendBillNotification(bill.getId());
+            }
+        }
+        
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
     
@@ -174,5 +190,24 @@ public class BillingController {
             );
             return ResponseEntity.status(errorResponse.getStatusCode()).body(errorResponse);
         }
+    }
+    
+    /**
+     * Send a bill via WhatsApp
+     * 
+     * @param id The ID of the bill to send
+     * @return ResponseEntity with the result
+     */
+    @PostMapping("/{id}/send-whatsapp")
+    public ResponseEntity<ApiResponse> sendBillViaWhatsApp(@PathVariable Long id) {
+        // Get bill details first to check if it exists
+        ApiResponse billResponse = billingService.getBillById(id);
+        if (billResponse.getStatusCode() != HttpStatus.OK.value()) {
+            return ResponseEntity.status(billResponse.getStatusCode()).body(billResponse);
+        }
+        
+        // Send WhatsApp notification
+        ApiResponse response = whatsAppService.sendBillNotification(id);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }
